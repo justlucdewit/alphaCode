@@ -40,7 +40,7 @@ char** read(char* filename){
 }
 
 void cmd_quit(int lineNr, int exitCode){
-    printf("program exited on line %d with code %d", lineNr, exitCode);
+    printf("program exited on line %d with code %d\n", lineNr, exitCode);
     exit(0);
 }
 
@@ -52,13 +52,16 @@ void run(char* filename){
     int arg1;
 
     for (int lineNr = 0; lineNr < numOfLines; lineNr++){
+        if (code[lineNr][0] == '#'){
+            continue;//line is a comment
+        }
+
         if (sscanf(code[lineNr], "%s", command) == 1 && strcmp(command, "exit") == 0){
             if (sscanf(code[lineNr], "%s %d", command, &arg1) == 2){
                 cmd_quit(lineNr+1, arg1);
             }else{
-                puts("test");
                 //! not enough arguments supplied for exit command
-                printf("[ERROR 001] exit command on line %d needs a argument to indicate the exit-code", lineNr);
+                printf("[ERROR 001] exit command on line %d needs a argument to indicate the exit-code\n", lineNr+1);
             }
         }
     }
