@@ -48,21 +48,35 @@ void run(char* filename){
     int numOfLines = countlines(filename);
     char** code = read(filename);
 
-    char command[10];
+    char command[30];
+    char firstchar;
     int arg1;
 
     for (int lineNr = 0; lineNr < numOfLines; lineNr++){
-        if (code[lineNr][0] == '#'){
+        //* comments
+        if (sscanf(code[lineNr], "%c", &firstchar) == 1 && firstchar == '#'){
             continue;//line is a comment
         }
 
-        if (sscanf(code[lineNr], "%s", command) == 1 && strcmp(command, "exit") == 0){
+        //* exit
+        if (sscanf(code[lineNr], "%30s", command) == 1 && strcmp(command, "exit") == 0){
             if (sscanf(code[lineNr], "%s %d", command, &arg1) == 2){
                 cmd_quit(lineNr+1, arg1);
             }else{
                 //! not enough arguments supplied for exit command
                 printf("[ERROR 001] exit command on line %d needs a argument to indicate the exit-code\n", lineNr+1);
             }
+        }
+
+        //*print
+        if (sscanf(code[lineNr], "%s30", command) == 1 && strcmp(command, "print") == 0){
+            int pos = 6;
+            while (code[lineNr][pos] != '\n'){
+                putchar(code[lineNr][pos]);
+                pos++;
+            }
+
+            putchar('\n');
         }
     }
 }
