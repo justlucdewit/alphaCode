@@ -52,9 +52,14 @@ void run(char* filename){
     char firstchar;
     int arg1;
 
-    for (int lineNr = 0; lineNr < numOfLines; lineNr++){
+    int lineNr = 0;
+
+
+    while(lineNr <= numOfLines){
+        //printf("now on line %d\n", lineNr);
         //* comments
         if (sscanf(code[lineNr], "%c", &firstchar) == 1 && firstchar == '#'){
+            lineNr++;
             continue;//line is a comment
         }
 
@@ -69,7 +74,7 @@ void run(char* filename){
         }
 
         //*print
-        if (sscanf(code[lineNr], "%s30", command) == 1 && strcmp(command, "print") == 0){
+        if (sscanf(code[lineNr], "%30s", command) == 1 && strcmp(command, "print") == 0){
             int pos = 6;
             while (code[lineNr][pos] != '\n'){
                 putchar(code[lineNr][pos]);
@@ -78,6 +83,19 @@ void run(char* filename){
 
             putchar('\n');
         }
+
+        //* goto
+        if (sscanf(code[lineNr], "%30s", command) == 1 && strcmp(command, "goto") == 0){
+            if (sscanf(code[lineNr], "%30s %d", command, &arg1) == 2){
+                lineNr = arg1-1;
+                continue;
+            }else{
+                //! not enough arguments supplied for goto command
+                printf("[ERROR 002] exit command on line %d needs a argument to indicate the exit-code\n", lineNr+1);
+            }
+        }
+
+        lineNr++;
     }
 }
 
