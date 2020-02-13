@@ -25,7 +25,6 @@ int countlines(char *filename)
 
 char** read(char* filename){
     int lineCount = countlines(filename);
-    printf("file has %d line\n", lineCount);
     char** lines = malloc(lineCount*sizeof(char*));
 
     
@@ -40,12 +39,28 @@ char** read(char* filename){
     return lines;
 }
 
+void cmd_quit(int lineNr, int exitCode){
+    printf("program exited on line %d with code %d", lineNr, exitCode);
+    exit(0);
+}
+
 void run(char* filename){
     int numOfLines = countlines(filename);
     char** code = read(filename);
 
-    for (int i = 0; i < numOfLines; i++){
-        printf(code[i]);
+    char command[10];
+    int arg1;
+
+    for (int lineNr = 0; lineNr < numOfLines; lineNr++){
+        if (sscanf(code[lineNr], "%s", command) == 1 && strcmp(command, "exit") == 0){
+            if (sscanf(code[lineNr], "%s %d", command, &arg1) == 2){
+                cmd_quit(lineNr+1, arg1);
+            }else{
+                puts("test");
+                //! not enough arguments supplied for exit command
+                printf("[ERROR 001] exit command on line %d needs a argument to indicate the exit-code", lineNr);
+            }
+        }
     }
 }
 

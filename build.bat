@@ -1,0 +1,1 @@
+gcc alpha.c -o alpha
