@@ -1,3 +1,11 @@
+/*
+    alpha code is a project started by luc de wit
+    it was started on 12-2-2020
+
+    it was originally meant to be a improvement on
+    the language zettacode made by joseph catanzarit
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,7 +52,7 @@ struct variable{
     };
 };
 
-
+//? look into strstr()
 int countlines(char *filename)
 {
     // count the number of lines in the file called filename                                    
@@ -93,6 +101,7 @@ void run(char* filename){
     char firstchar;
 
     char strarg1[258];
+    char strarg2[258];
     int arg1;
 
     int lineNr = 0;
@@ -109,16 +118,6 @@ void run(char* filename){
             continue;//line is a comment
         }
 
-        //* exit
-        if (strncmp(code[lineNr], "exit", 4) == 0){
-            if (sscanf(code[lineNr], "%s %d", command, &arg1) == 2){
-                cmd_quit(lineNr+1, arg1);
-            }else{
-                //! not enough arguments supplied for exit command
-                printf("[ERROR 001] exit command on line %d needs a argument to indicate the exit-code\n", lineNr+1);
-            }
-        }
-
         //*print
         if (strncmp(code[lineNr], "print", 5) == 0){
             int pos = 6;
@@ -129,9 +128,19 @@ void run(char* filename){
 
             putchar('\n');
         }
+        //* exit
+        else if (strncmp(code[lineNr], "exit", 4) == 0){
+            if (sscanf(code[lineNr], "%s %d", command, &arg1) == 2){
+                cmd_quit(lineNr+1, arg1);
+            }else{
+                //! not enough arguments supplied for exit command
+                printf("[ERROR 001] exit command on line %d needs a argument to indicate the exit-code\n", lineNr+1);
+            }
+        }
+
 
         //* goto
-        if (strncmp(code[lineNr], "goto", 4) == 0){
+        else if (strncmp(code[lineNr], "goto", 4) == 0){
             if (sscanf(code[lineNr], "%30s %d", command, &arg1) == 2){
                 lineNr = arg1-1;
                 continue;
@@ -142,7 +151,8 @@ void run(char* filename){
         }
 
         //* def
-        if (strncmp(code[lineNr], "let", 3) == 0){
+        else if (strncmp(code[lineNr], "let", 3) == 0){
+            //* define int variable
             if (sscanf(code[lineNr], "%30s %258s %d", command, strarg1, &arg1) == 3){
                 // make a copy of the variable name string
                 char *newvarname = malloc((sizeof(char))*258);
@@ -157,20 +167,44 @@ void run(char* filename){
                 memory = realloc(memory, (sizeof(newvar))*numOfVars);
                 memory[numOfVars-1] = newvar;
             }
+
+            //* define string variable
+            else if (sscanf(code[lineNr], "%30s %258s %[a-zA-Z ]", command, strarg1, strarg2)){
+                //make a copy of the variable name string
+                char *newvarname = malloc((sizeof(char))*258);
+                strcpy(newvarname, strarg1);
+                newvarname[257] = '\0';
+
+                //clone variable value in new buffer
+                char *newvarvalue = malloc((sizeof(char))*strlen(strarg2));
+                strcpy(newvarvalue, strarg2);
+
+                //create the variable struct
+                struct variable newvar = {.key = newvarname, .type = alph_str, .str_val = newvarvalue};
+
+                //increase memory buffer size
+                numOfVars++;
+                memory = realloc(memory, (sizeof(newvar))*numOfVars);
+                memory[numOfVars-1] = newvar;
+            }
         }
 
         //* debug
-        if (strncmp(code[lineNr], "debug", 5) == 0){
+        else if (strncmp(code[lineNr], "debug", 5) == 0){
             puts("[DEBUG] available variables:");
             for (int i = 0; i < numOfVars; i++){
                 struct variable var = memory[i];
                 if (var.type == alph_int){
                     printf("%s = %d\n", var.key, var.int_val);
                 }
+
+                else if (var.type == alph_str){
+                    printf("%s = '%s'\n", var.key, var.str_val);
+                }
             }
         }
 
-        //read next line in the following itter
+        //read next line in the following itter         
         lineNr++;
     }
 }
