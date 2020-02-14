@@ -2,7 +2,48 @@
 #include <stdlib.h>
 #include <string.h>
 
+/*
+commands:
+    comments
+        # the text after this will be ignored
+    
+    exit [int]
+        will quit the execution of the program emediatly
+        and return its argument as exit-code
+
+    print [str/int]
+        will print its first argument to the console
+        line
+
+    goto [int]
+        will change the current reading position of the
+        program, and continue on that line given as the first argument
+
+    def [str] [str/int]
+        will store the string or int in the second argument
+        as a variable with the name given as the first argument    
+
+    debug
+        will print a list of all currently available variables
+*/
+
 #define MAXLINESIZE 1000
+#define VARIABLESIZELIM 1000 //! this shouldnt be a thing
+
+typedef enum Types{
+    alph_int,
+    alph_str
+}alph_type;
+
+struct variable{
+    char* key;
+    alph_type type;
+    union{
+        char* str_val;
+        int int_val;
+    };
+};
+
 
 int countlines(char *filename)
 {
@@ -50,9 +91,14 @@ void run(char* filename){
 
     char command[30];
     char firstchar;
+
+    char strarg1[258];
     int arg1;
 
     int lineNr = 0;
+    int numOfVars = 0;
+
+    struct variable *memory = malloc(1);
 
 
     while(lineNr <= numOfLines){
@@ -64,7 +110,7 @@ void run(char* filename){
         }
 
         //* exit
-        if (sscanf(code[lineNr], "%30s", command) == 1 && strcmp(command, "exit") == 0){
+        if (strncmp(code[lineNr], "exit", 4) == 0){
             if (sscanf(code[lineNr], "%s %d", command, &arg1) == 2){
                 cmd_quit(lineNr+1, arg1);
             }else{
@@ -74,7 +120,7 @@ void run(char* filename){
         }
 
         //*print
-        if (sscanf(code[lineNr], "%30s", command) == 1 && strcmp(command, "print") == 0){
+        if (strncmp(code[lineNr], "print", 5) == 0){
             int pos = 6;
             while (code[lineNr][pos] != '\n'){
                 putchar(code[lineNr][pos]);
@@ -85,7 +131,7 @@ void run(char* filename){
         }
 
         //* goto
-        if (sscanf(code[lineNr], "%30s", command) == 1 && strcmp(command, "goto") == 0){
+        if (strncmp(code[lineNr], "goto", 4) == 0){
             if (sscanf(code[lineNr], "%30s %d", command, &arg1) == 2){
                 lineNr = arg1-1;
                 continue;
@@ -95,6 +141,36 @@ void run(char* filename){
             }
         }
 
+        //* def
+        if (strncmp(code[lineNr], "let", 3) == 0){
+            if (sscanf(code[lineNr], "%30s %258s %d", command, strarg1, &arg1) == 3){
+                // make a copy of the variable name string
+                char *newvarname = malloc((sizeof(char))*258);
+                strcpy(newvarname, strarg1);
+                newvarname[257] = '\0';
+
+                // create the variable struct
+                struct variable newvar = {.key = newvarname, .type = alph_int, .int_val = arg1};
+                
+                //increase memory buffer size
+                numOfVars++;
+                memory = realloc(memory, (sizeof(newvar))*numOfVars);
+                memory[numOfVars-1] = newvar;
+            }
+        }
+
+        //* debug
+        if (strncmp(code[lineNr], "debug", 5) == 0){
+            puts("[DEBUG] available variables:");
+            for (int i = 0; i < numOfVars; i++){
+                struct variable var = memory[i];
+                if (var.type == alph_int){
+                    printf("%s = %d\n", var.key, var.int_val);
+                }
+            }
+        }
+
+        //read next line in the following itter
         lineNr++;
     }
 }
