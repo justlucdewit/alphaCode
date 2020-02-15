@@ -6,10 +6,12 @@
     the language zettacode made by joseph catanzarit
 */
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+char* version = "V1.1.2";
 /*
 commands:
     comments
@@ -37,6 +39,15 @@ commands:
 
 #define MAXLINESIZE 1000
 #define VARIABLESIZELIM 1000 //! this shouldnt be a thing
+
+int isNumeric (const char * s)
+{
+    if (s == NULL || *s == '\0' || isspace(*s))
+      return 0;
+    char * p;
+    strtod (s, &p);
+    return *p == '\0';
+}
 
 typedef enum Types{
     alph_int,
@@ -111,7 +122,7 @@ void run(char* filename){
 
 
     while(lineNr <= numOfLines){
-        //printf("now on line %d\n", lineNr);
+        //printf("now on line %d\n", lineNr+1);
         //* comments
         if (sscanf(code[lineNr], "%c", &firstchar) == 1 && firstchar == '#'){
             lineNr++;
@@ -119,7 +130,7 @@ void run(char* filename){
         }
 
         //*print
-        if (strncmp(code[lineNr], "print", 5) == 0){
+        if (strncmp(code[lineNr], "print ", 6) == 0){
             int pos = 6;
             while (code[lineNr][pos] != '\n'){
                 putchar(code[lineNr][pos]);
@@ -129,7 +140,7 @@ void run(char* filename){
             putchar('\n');
         }
         //* exit
-        else if (strncmp(code[lineNr], "exit", 4) == 0){
+        else if (strncmp(code[lineNr], "exit ", 5) == 0){
             if (sscanf(code[lineNr], "%s %d", command, &arg1) == 2){
                 cmd_quit(lineNr+1, arg1);
             }else{
@@ -140,7 +151,7 @@ void run(char* filename){
 
 
         //* goto
-        else if (strncmp(code[lineNr], "goto", 4) == 0){
+        else if (strncmp(code[lineNr], "goto ", 5) == 0){
             if (sscanf(code[lineNr], "%30s %d", command, &arg1) == 2){
                 lineNr = arg1-1;
                 continue;
@@ -151,7 +162,7 @@ void run(char* filename){
         }
 
         //* def
-        else if (strncmp(code[lineNr], "let", 3) == 0){
+        else if (strncmp(code[lineNr], "let ", 4) == 0){
             //* define int variable
             if (sscanf(code[lineNr], "%30s %258s %d", command, strarg1, &arg1) == 3){
                 // make a copy of the variable name string
@@ -189,19 +200,39 @@ void run(char* filename){
             }
         }
 
+        //* get value
+        else if (strncmp(code[lineNr], "get ", 4) == 0){
+            if (sscanf(code[lineNr], "get %256s", strarg1)){
+                char *newvarname = malloc((sizeof(char))*258);
+                strcpy(newvarname, strarg1);
+                newvarname[257] = '\0';
+
+                char *varVal = malloc((sizeof(char))*1000);//! limits shouldnt be a thing
+                fgets(varVal, 1000, stdin);
+                sscanf(varVal, "%[^\n]", varVal);
+                
+                struct variable newvar = {.key = newvarname, .type = alph_str, .str_val = varVal};
+                
+                numOfVars++;
+                memory = realloc(memory, (sizeof(newvar))*numOfVars);
+                memory[numOfVars-1] = newvar;
+            }
+        }
+
         //* debug
         else if (strncmp(code[lineNr], "debug", 5) == 0){
-            puts("[DEBUG] available variables:");
+            puts("\n[DEBUG] available variables:");
             for (int i = 0; i < numOfVars; i++){
                 struct variable var = memory[i];
                 if (var.type == alph_int){
-                    printf("%s = %d\n", var.key, var.int_val);
+                    printf("\t%s = %d\n", var.key, var.int_val);
                 }
 
                 else if (var.type == alph_str){
-                    printf("%s = '%s'\n", var.key, var.str_val);
+                    printf("\t%s = '%s'\n", var.key, var.str_val);
                 }
             }
+            puts("\n");
         }
 
         //read next line in the following itter         
