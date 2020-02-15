@@ -1,9 +1,9 @@
 print what is your name: 
-get name
+get name some random words
 
 print what is your age: 
-get age
+get age some random words
 
-debug
+debug some random words
 
-exit 0 
+exit 0  some random words

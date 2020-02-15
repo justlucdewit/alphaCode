@@ -1,0 +1,14 @@
+wrong type of argument:
+    [ERROR 101]: argument in exit command has wrong type
+    [ERROR 102]: argument in goto command has wrong type
+
+too little arguments:
+    [ERROR 201]: too little arguments in exit command
+    [ERROR 202]: too little arguments in goto command
+
+too many arguments:
+    [ERROR 301]: too many arguments in exit command
+    [ERROR 302]: too many arguments in goto command
+
+special:
+    [ERROR 69420]: unreachable state reached (should be impossible to get)

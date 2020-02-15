@@ -11,7 +11,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-char* version = "V1.1.2";
 /*
 commands:
     comments
@@ -37,6 +36,11 @@ commands:
         will print a list of all currently available variables
 */
 
+//v1.1.6 will have more command vallidation/errors
+//v1.1.7 will have variable printing
+//v1.2 will have all functionality of zetacode
+
+#define VERSION "alphaCode V1.1.6"
 #define MAXLINESIZE 1000
 #define VARIABLESIZELIM 1000 //! this shouldnt be a thing
 
@@ -47,6 +51,33 @@ int isNumeric (const char * s)
     char * p;
     strtod (s, &p);
     return *p == '\0';
+}
+
+int numberOfParts(char* code){
+  int pieces = 0;
+  int len = strlen(code);
+
+  int readingWord = 0;
+  
+  for (int i = 0; i < len; i++){
+    char letter = code[i];
+    if (letter == '#'){
+        break;
+    }
+
+    if (letter != '\n' && letter != ' ' && letter != '\t'){
+      readingWord = 1;
+    }else if (readingWord){
+      pieces += 1;
+      readingWord = 0;
+    }
+  }
+
+  if (readingWord){
+    pieces += 1;
+  }
+
+  return pieces;
 }
 
 typedef enum Types{
@@ -104,6 +135,25 @@ void cmd_quit(int lineNr, int exitCode){
     exit(0);
 }
 
+void doError(int type, int lineNr){
+    switch(type){
+        //wrong arg type
+        case 101: printf("[ERROR 101] exit command on line %d needs a integer argument, indicating the exit code\n", lineNr);break;
+        case 102: printf("[ERROR 102] goto command on line %d needs a integer argument, indicating the line to jump too\n", lineNr);break;
+
+        //to little args
+        case 201: printf("[ERROR 201] exit command on line %d has too little arguments, it needs 1", lineNr);break;
+        case 202: printf("[ERROR 201] goto command on line %d has too little arguments, it needs 1", lineNr);break;
+
+        //to many args
+        case 301: printf("[ERROR 301] exit command on line %d has too many arguments, it needs 1", lineNr);break;
+        case 302: printf("[ERROR 301] goto command on line %d has too many arguments, it needs 1", lineNr);break;
+
+        default: printf("[ERROR 69420] unreachable state reached");
+    }
+    exit(1);
+}
+
 void run(char* filename){
     int numOfLines = countlines(filename);
     char** code = read(filename);
@@ -140,29 +190,45 @@ void run(char* filename){
             putchar('\n');
         }
         //* exit
-        else if (strncmp(code[lineNr], "exit ", 5) == 0){
+        else if (strncmp(code[lineNr], "exit", 4) == 0){
+            int parts = numberOfParts(code[lineNr]);
+            if (parts != 2){
+                if (parts < 2){
+                    doError(201, lineNr+1);
+                }else{
+                    doError(301, lineNr+1);
+                }
+            }
+
             if (sscanf(code[lineNr], "%s %d", command, &arg1) == 2){
                 cmd_quit(lineNr+1, arg1);
             }else{
-                //! not enough arguments supplied for exit command
-                printf("[ERROR 001] exit command on line %d needs a argument to indicate the exit-code\n", lineNr+1);
+                doError(101, lineNr+1);
             }
         }
 
 
         //* goto
-        else if (strncmp(code[lineNr], "goto ", 5) == 0){
+        else if (strncmp(code[lineNr], "goto", 4) == 0){
+            int parts = numberOfParts(code[lineNr]);
+            if (parts != 2){
+                if (parts < 2){
+                    doError(202, lineNr+1);
+                }else{
+                    doError(302, lineNr+1);
+                }
+            }
+
             if (sscanf(code[lineNr], "%30s %d", command, &arg1) == 2){
                 lineNr = arg1-1;
                 continue;
             }else{
-                //! not enough arguments supplied for goto command
-                printf("[ERROR 002] exit command on line %d needs a argument to indicate the exit-code\n", lineNr+1);
+                doError(102, lineNr+1);
             }
         }
 
         //* def
-        else if (strncmp(code[lineNr], "let ", 4) == 0){
+        else if (strncmp(code[lineNr], "let", 3) == 0){
             //* define int variable
             if (sscanf(code[lineNr], "%30s %258s %d", command, strarg1, &arg1) == 3){
                 // make a copy of the variable name string
@@ -249,6 +315,10 @@ void main(int argc, char** argv){
             }else{
                 puts("not enough commands supplied, try \"alpha run programName.ac\"");
             }
+        }
+
+        if (strcmp(command, "version") == 0){
+            puts(VERSION);
         }
 
         else{
