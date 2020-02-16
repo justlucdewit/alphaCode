@@ -38,7 +38,6 @@ commands:
         will print a list of all currently available variables
 */
 
-//v1.1.6 will have more command vallidation/errors
 //v1.1.7 will have variable printing
 //v1.2 will have all functionality of zetacode
 
@@ -265,7 +264,6 @@ void run(char* filename){
         else if (strncmp(code[lineNr], "let ", 4) == 0){
             int parts = numberOfParts(code[lineNr]);
             if (parts != 3){
-                printf("%s", code[lineNr]);
                 if (parts < 3){
                     doError(203, lineNr+1);
                 }else{
@@ -318,7 +316,6 @@ void run(char* filename){
         else if (strncmp(code[lineNr], "get", 3) == 0){
             int parts = numberOfParts(code[lineNr]);
             if (parts != 2){
-                printf("%s", code[lineNr]);
                 if (parts < 2){
                     doError(204, lineNr+1);
                 }else{
@@ -349,9 +346,7 @@ void run(char* filename){
         else if (strncmp(code[lineNr], "debug", 5) == 0){
             int parts = numberOfParts(code[lineNr]);
             if (parts != 1){
-                printf("%s", code[lineNr]);
-                    doError(306, lineNr+1);
-                }
+                doError(306, lineNr+1);
             }
 
             puts("\n[DEBUG] available variables:");
