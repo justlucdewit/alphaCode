@@ -6,6 +6,8 @@
     the language zettacode made by joseph catanzarit
 */
 
+//330
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,14 +60,23 @@ int numberOfParts(char* code){
   int len = strlen(code);
 
   int readingWord = 0;
-  
+  int readingstring = 0;
+
   for (int i = 0; i < len; i++){
     char letter = code[i];
     if (letter == '#'){
         break;
     }
 
-    if (letter != '\n' && letter != ' ' && letter != '\t'){
+    if (letter == '"'){
+        if (readingstring){
+            readingstring = 0;
+        }else{
+            readingstring = 1;
+        }
+    }
+
+    if ((letter != '\n' && letter != ' ' && letter != '\t') || readingstring){
       readingWord = 1;
     }else if (readingWord){
       pieces += 1;
@@ -138,16 +149,26 @@ void cmd_quit(int lineNr, int exitCode){
 void doError(int type, int lineNr){
     switch(type){
         //wrong arg type
-        case 101: printf("[ERROR 101] exit command on line %d needs a integer argument, indicating the exit code\n", lineNr);break;
-        case 102: printf("[ERROR 102] goto command on line %d needs a integer argument, indicating the line to jump too\n", lineNr);break;
+        case 101: printf("[ERROR 101] exit command on line %d expects args of type [int]\n", lineNr);break;
+        case 102: printf("[ERROR 102] goto command on line %d expects args of type [int]\n", lineNr);break;
+        case 103: printf("[ERROR 103] let command on line %d expects args of type [str] [str/int]\n", lineNr);break;
+        case 104: printf("[ERROR 104] get command on line %d expects args of type [str]\n", lineNr);break;
+        case 105: printf("[ERROR 105] print command on line %d expects args of type [str]\n", lineNr);break;
 
         //to little args
         case 201: printf("[ERROR 201] exit command on line %d has too little arguments, it needs 1", lineNr);break;
-        case 202: printf("[ERROR 201] goto command on line %d has too little arguments, it needs 1", lineNr);break;
+        case 202: printf("[ERROR 202] goto command on line %d has too little arguments, it needs 1", lineNr);break;
+        case 203: printf("[ERROR 203] let command on line %d has too little arguments, it needs 2", lineNr);break;
+        case 204: printf("[ERROR 204] print command on line %d has too little arguments, it needs 1", lineNr);break;
+        case 205: printf("[ERROR 205] get command on line %d has too little arguments, it needs 1", lineNr);break;
 
         //to many args
         case 301: printf("[ERROR 301] exit command on line %d has too many arguments, it needs 1", lineNr);break;
-        case 302: printf("[ERROR 301] goto command on line %d has too many arguments, it needs 1", lineNr);break;
+        case 302: printf("[ERROR 302] goto command on line %d has too many arguments, it needs 1", lineNr);break;
+        case 303: printf("[ERROR 303] let command on line %d has too many arguments, it needs 2", lineNr);break;
+        case 304: printf("[ERROR 304] get command on line %d has too many arguments, it needs 1", lineNr);break;
+        case 305: printf("[ERROR 305] print command on line %d has too many arguments, it needs 1", lineNr);break;
+        case 306: printf("[ERROR 306] debug command on line %d has too many arguments, it needs 0", lineNr);break;
 
         default: printf("[ERROR 69420] unreachable state reached");
     }
@@ -181,16 +202,29 @@ void run(char* filename){
 
         //*print
         if (strncmp(code[lineNr], "print ", 6) == 0){
-            int pos = 6;
-            while (code[lineNr][pos] != '\n'){
-                putchar(code[lineNr][pos]);
-                pos++;
+            int parts = numberOfParts(code[lineNr]);
+            if (parts != 2){
+                if (parts < 2){
+                    doError(205, lineNr+1);
+                }else{
+                    doError(305, lineNr+1);
+                }
             }
 
-            putchar('\n');
+
+            char* string = malloc((sizeof(char))*(strlen(code[lineNr])-8));
+            string[strlen(code[lineNr])-7] = '\0';
+            if (sscanf(code[lineNr], "%s \"%[a-zA-Z _+-=*/^]\"", command,  string) == 2){
+                printf("%s", string);
+                putchar('\n');
+            }else{
+                printf("%s", string);
+                doError(105, lineNr+1);
+            }
         }
+
         //* exit
-        else if (strncmp(code[lineNr], "exit", 4) == 0){
+        else if (strncmp(code[lineNr], "exit ", 5) == 0){
             int parts = numberOfParts(code[lineNr]);
             if (parts != 2){
                 if (parts < 2){
@@ -209,7 +243,7 @@ void run(char* filename){
 
 
         //* goto
-        else if (strncmp(code[lineNr], "goto", 4) == 0){
+        else if (strncmp(code[lineNr], "goto ", 5) == 0){
             int parts = numberOfParts(code[lineNr]);
             if (parts != 2){
                 if (parts < 2){
@@ -227,8 +261,18 @@ void run(char* filename){
             }
         }
 
-        //* def
-        else if (strncmp(code[lineNr], "let", 3) == 0){
+        //* let
+        else if (strncmp(code[lineNr], "let ", 4) == 0){
+            int parts = numberOfParts(code[lineNr]);
+            if (parts != 3){
+                printf("%s", code[lineNr]);
+                if (parts < 3){
+                    doError(203, lineNr+1);
+                }else{
+                    doError(303, lineNr+1);
+                }
+            }
+
             //* define int variable
             if (sscanf(code[lineNr], "%30s %258s %d", command, strarg1, &arg1) == 3){
                 // make a copy of the variable name string
@@ -246,7 +290,7 @@ void run(char* filename){
             }
 
             //* define string variable
-            else if (sscanf(code[lineNr], "%30s %258s %[a-zA-Z ]", command, strarg1, strarg2)){
+            else if (sscanf(code[lineNr], "%30s %258s \"%[a-zA-Z _+-=*/^]\"", command, strarg1, strarg2) == 3){
                 //make a copy of the variable name string
                 char *newvarname = malloc((sizeof(char))*258);
                 strcpy(newvarname, strarg1);
@@ -264,11 +308,25 @@ void run(char* filename){
                 memory = realloc(memory, (sizeof(newvar))*numOfVars);
                 memory[numOfVars-1] = newvar;
             }
+
+            else{
+                doError(103, lineNr+1);
+            }
         }
 
         //* get value
-        else if (strncmp(code[lineNr], "get ", 4) == 0){
-            if (sscanf(code[lineNr], "get %256s", strarg1)){
+        else if (strncmp(code[lineNr], "get", 3) == 0){
+            int parts = numberOfParts(code[lineNr]);
+            if (parts != 2){
+                printf("%s", code[lineNr]);
+                if (parts < 2){
+                    doError(204, lineNr+1);
+                }else{
+                    doError(304, lineNr+1);
+                }
+            }
+
+            if (sscanf(code[lineNr], "get %256[a-zA-Z_]", strarg1) == 1){
                 char *newvarname = malloc((sizeof(char))*258);
                 strcpy(newvarname, strarg1);
                 newvarname[257] = '\0';
@@ -282,11 +340,20 @@ void run(char* filename){
                 numOfVars++;
                 memory = realloc(memory, (sizeof(newvar))*numOfVars);
                 memory[numOfVars-1] = newvar;
+            }else{
+                doError(104, lineNr+1);
             }
         }
 
         //* debug
         else if (strncmp(code[lineNr], "debug", 5) == 0){
+            int parts = numberOfParts(code[lineNr]);
+            if (parts != 1){
+                printf("%s", code[lineNr]);
+                    doError(306, lineNr+1);
+                }
+            }
+
             puts("\n[DEBUG] available variables:");
             for (int i = 0; i < numOfVars; i++){
                 struct variable var = memory[i];

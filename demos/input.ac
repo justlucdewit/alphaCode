@@ -1,9 +1,9 @@
-print what is your name: 
-get name some random words
+print "what is your name:"
+get name
 
-print what is your age: 
-get age some random words
+print "what is your age:"
+get age
 
 debug some random words
 
-exit 0  some random words
+exit 0
