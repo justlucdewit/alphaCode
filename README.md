@@ -14,6 +14,7 @@ alpha run folder/example.ac
 ```
 <br>
 get current version:
+
 ```
 alpha version
 ```
@@ -25,6 +26,7 @@ here is a list of the currently available commands
 
 <br>
 comments are defined using #'s, and are allowed to put inline after another command
+
 ```
 #this is a comment
 goto 1 #this is a inline comment
@@ -32,12 +34,14 @@ goto 1 #this is a inline comment
 
 <br>
 print statements are made using the print keyword, and then the string to print
+
 ```
 print "hello world"
 ```
 
 <br>
 exit statements quit 
+
 ```
 print "hello world"
 ```
