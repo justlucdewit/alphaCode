@@ -41,9 +41,41 @@ commands:
 //v1.1.7 will have variable printing
 //v1.2 will have all functionality of zetacode
 
-#define VERSION "alphaCode V1.1.6"
+#define VERSION "alphaCode V1.1.7"
 #define MAXLINESIZE 1000
 #define VARIABLESIZELIM 1000 //! this shouldnt be a thing
+
+void doError(int type, int lineNr){
+    switch(type){
+        //odd
+        case 1: printf("[ERROR 001] variable not defined on line %d", lineNr);break;
+
+        //wrong arg type
+        case 101: printf("[ERROR 101] exit command on line %d expects args of type [int]\n", lineNr);break;
+        case 102: printf("[ERROR 102] goto command on line %d expects args of type [int]\n", lineNr);break;
+        case 103: printf("[ERROR 103] let command on line %d expects args of type [str] [str/int]\n", lineNr);break;
+        case 104: printf("[ERROR 104] get command on line %d expects args of type [str]\n", lineNr);break;
+        case 105: printf("[ERROR 105] print command on line %d expects args of type [str/var]\n", lineNr);break;
+
+        //to little args
+        case 201: printf("[ERROR 201] exit command on line %d has to little arguments, it needs 1", lineNr);break;
+        case 202: printf("[ERROR 202] goto command on line %d has to little arguments, it needs 1", lineNr);break;
+        case 203: printf("[ERROR 203] let command on line %d has to little arguments, it needs 2", lineNr);break;
+        case 204: printf("[ERROR 204] print command on line %d has to little arguments, it needs 1", lineNr);break;
+        case 205: printf("[ERROR 205] get command on line %d has to little arguments, it needs 1", lineNr);break;
+
+        //to many args
+        case 301: printf("[ERROR 301] exit command on line %d has to many arguments, it needs 1", lineNr);break;
+        case 302: printf("[ERROR 302] goto command on line %d has to many arguments, it needs 1", lineNr);break;
+        case 303: printf("[ERROR 303] let command on line %d has to many arguments, it needs 2", lineNr);break;
+        case 304: printf("[ERROR 304] get command on line %d has to many arguments, it needs 1", lineNr);break;
+        case 305: printf("[ERROR 305] print command on line %d has to many arguments, it needs 1", lineNr);break;
+        case 306: printf("[ERROR 306] debug command on line %d has to many arguments, it needs 0", lineNr);break;
+
+        default: printf("[ERROR 69420] unreachable state reached");
+    }
+    exit(1);
+}
 
 int isNumeric (const char * s)
 {
@@ -124,6 +156,16 @@ int countlines(char *filename)
     return lines;
 }
 
+struct variable findVariable(char* varname, struct variable *memory, int searchArea, int lineNr){
+    for (int i = 0; i < searchArea; i++){
+        if (strcmp(memory[i].key, varname)==0){
+            return memory[i];
+        }
+    }
+
+    doError(1, lineNr);
+}
+
 char** read(char* filename){
     int lineCount = countlines(filename);
     char** lines = malloc(lineCount*sizeof(char*));
@@ -145,34 +187,6 @@ void cmd_quit(int lineNr, int exitCode){
     exit(0);
 }
 
-void doError(int type, int lineNr){
-    switch(type){
-        //wrong arg type
-        case 101: printf("[ERROR 101] exit command on line %d expects args of type [int]\n", lineNr);break;
-        case 102: printf("[ERROR 102] goto command on line %d expects args of type [int]\n", lineNr);break;
-        case 103: printf("[ERROR 103] let command on line %d expects args of type [str] [str/int]\n", lineNr);break;
-        case 104: printf("[ERROR 104] get command on line %d expects args of type [str]\n", lineNr);break;
-        case 105: printf("[ERROR 105] print command on line %d expects args of type [str]\n", lineNr);break;
-
-        //to little args
-        case 201: printf("[ERROR 201] exit command on line %d has to little arguments, it needs 1", lineNr);break;
-        case 202: printf("[ERROR 202] goto command on line %d has to little arguments, it needs 1", lineNr);break;
-        case 203: printf("[ERROR 203] let command on line %d has to little arguments, it needs 2", lineNr);break;
-        case 204: printf("[ERROR 204] print command on line %d has to little arguments, it needs 1", lineNr);break;
-        case 205: printf("[ERROR 205] get command on line %d has to little arguments, it needs 1", lineNr);break;
-
-        //to many args
-        case 301: printf("[ERROR 301] exit command on line %d has to many arguments, it needs 1", lineNr);break;
-        case 302: printf("[ERROR 302] goto command on line %d has to many arguments, it needs 1", lineNr);break;
-        case 303: printf("[ERROR 303] let command on line %d has to many arguments, it needs 2", lineNr);break;
-        case 304: printf("[ERROR 304] get command on line %d has to many arguments, it needs 1", lineNr);break;
-        case 305: printf("[ERROR 305] print command on line %d has to many arguments, it needs 1", lineNr);break;
-        case 306: printf("[ERROR 306] debug command on line %d has to many arguments, it needs 0", lineNr);break;
-
-        default: printf("[ERROR 69420] unreachable state reached");
-    }
-    exit(1);
-}
 
 void run(char* filename){
     int numOfLines = countlines(filename);
@@ -199,7 +213,7 @@ void run(char* filename){
             continue;//line is a comment
         }
 
-        //*print
+        //* print
         if (strncmp(code[lineNr], "print ", 6) == 0){
             int parts = numberOfParts(code[lineNr]);
             if (parts != 2){
@@ -216,8 +230,19 @@ void run(char* filename){
             if (sscanf(code[lineNr], "%s \"%[a-zA-Z _+-=*/^]\"", command,  string) == 2){
                 printf("%s", string);
                 putchar('\n');
+            }else if (code[lineNr][6] != '"'){//printing a variable
+                char *varname = malloc((sizeof(char))*256);
+                sscanf(code[lineNr], "print %s", varname);
+                printf("searching for variable named: %s\n", varname);
+                struct variable varstruct = findVariable(varname, memory, numOfVars, lineNr);
+                //printf("%s", varstruct.);
+
+                if (varstruct.type == alph_str){
+                    printf("%s", varstruct.str_val);
+                }else{
+                    printf("%d", varstruct.int_val);
+                }
             }else{
-                printf("%s", string);
                 doError(105, lineNr+1);
             }
         }
