@@ -7,7 +7,7 @@ alpha code is a project started by luc de wit in februari 2020, its based on the
 zetaCode aimed to be a simple language, interpreted in python wich looked like BASIC<br>
 alphaCode on the other hand aimes for the same but improved, its written in C to gain alot more performance, and it has more advanced features like variables and markers
 
-### alpha CLI commands
+## alpha CLI commands
 run a script .ac script:
 ```
 alpha run folder/example.ac
@@ -19,7 +19,7 @@ get current version:
 alpha version
 ```
 
-### commands
+## commands
 alpha code is based on simple comands, that are executed from top to bottom.<br>
 however, alpha code is able to change the line it is reading, while executing using the goto command<br>
 here is a list of the currently available commands
