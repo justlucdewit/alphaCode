@@ -40,8 +40,42 @@ print "hello world"
 ```
 
 <br>
-exit statements quit 
+exit statements quits the program and mentions what the exit code is<br>the exit code is usually 0 if the program ran normally, it needs 1 int argument<br>representing the exit code
 
 ```
-print "hello world"
+exit 0
+```
+
+
+<br>
+goto statements change the line number, where the program is currently running<br>this way you can make loops, and functions<br>
+
+```
+#go to line 5
+goto 5 
+```
+
+<br>
+let statements let you create a variable with a name and a value wich can be<br>a number or a string
+
+```
+let name "your mom"
+let age 82
+```
+
+<br>
+get statements let you get information from the user via console input<br>and then store it in a variable
+
+```
+get name
+#name is now a variable with a name
+```
+
+<br>
+debug is a command that lets you print every single variable that are<br> currently available, it doesnt need any arguments
+
+```
+get name
+let age 18
+debug
 ```
