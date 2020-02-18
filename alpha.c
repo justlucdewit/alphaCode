@@ -45,126 +45,11 @@ commands:
 #define MAXLINESIZE 1000
 #define VARIABLESIZELIM 1000 //! this shouldnt be a thing
 
-void doError(int type, int lineNr){
-    switch(type){
-        //odd
-        case 1: printf("[ERROR 001] variable not defined on line %d", lineNr);break;
-
-        //wrong arg type
-        case 101: printf("[ERROR 101] exit command on line %d expects args of type [int]\n", lineNr);break;
-        case 102: printf("[ERROR 102] goto command on line %d expects args of type [int]\n", lineNr);break;
-        case 103: printf("[ERROR 103] let command on line %d expects args of type [str] [str/int]\n", lineNr);break;
-        case 104: printf("[ERROR 104] get command on line %d expects args of type [str]\n", lineNr);break;
-        case 105: printf("[ERROR 105] print command on line %d expects args of type [str/var]\n", lineNr);break;
-
-        //to little args
-        case 201: printf("[ERROR 201] exit command on line %d has to little arguments, it needs 1", lineNr);break;
-        case 202: printf("[ERROR 202] goto command on line %d has to little arguments, it needs 1", lineNr);break;
-        case 203: printf("[ERROR 203] let command on line %d has to little arguments, it needs 2", lineNr);break;
-        case 204: printf("[ERROR 204] print command on line %d has to little arguments, it needs 1", lineNr);break;
-        case 205: printf("[ERROR 205] get command on line %d has to little arguments, it needs 1", lineNr);break;
-
-        //to many args
-        case 301: printf("[ERROR 301] exit command on line %d has to many arguments, it needs 1", lineNr);break;
-        case 302: printf("[ERROR 302] goto command on line %d has to many arguments, it needs 1", lineNr);break;
-        case 303: printf("[ERROR 303] let command on line %d has to many arguments, it needs 2", lineNr);break;
-        case 304: printf("[ERROR 304] get command on line %d has to many arguments, it needs 1", lineNr);break;
-        case 305: printf("[ERROR 305] print command on line %d has to many arguments, it needs 1", lineNr);break;
-        case 306: printf("[ERROR 306] debug command on line %d has to many arguments, it needs 0", lineNr);break;
-
-        default: printf("[ERROR 69420] unreachable state reached");
-    }
-    exit(1);
-}
-
-int isNumeric (const char * s)
-{
-    if (s == NULL || *s == '\0' || isspace(*s))
-      return 0;
-    char * p;
-    strtod (s, &p);
-    return *p == '\0';
-}
-
-int numberOfParts(char* code){
-  int pieces = 0;
-  int len = strlen(code);
-
-  int readingWord = 0;
-  int readingstring = 0;
-
-  for (int i = 0; i < len; i++){
-    char letter = code[i];
-    if (letter == '#'){
-        break;
-    }
-
-    if (letter == '"'){
-        if (readingstring){
-            readingstring = 0;
-        }else{
-            readingstring = 1;
-        }
-    }
-
-    if ((letter != '\n' && letter != ' ' && letter != '\t') || readingstring){
-      readingWord = 1;
-    }else if (readingWord){
-      pieces += 1;
-      readingWord = 0;
-    }
-  }
-
-  if (readingWord){
-    pieces += 1;
-  }
-
-  return pieces;
-}
-
-typedef enum Types{
-    alph_int,
-    alph_str
-}alph_type;
-
-struct variable{
-    char* key;
-    alph_type type;
-    union{
-        char* str_val;
-        int int_val;
-    };
-};
-
-//? look into strstr()
-int countlines(char *filename)
-{
-    // count the number of lines in the file called filename                                    
-    FILE *fp = fopen(filename,"r");
-    int ch=0;
-    int lines=0;
-
-    if (fp == NULL) return 0;
-
-    lines++;
-    while ((ch = fgetc(fp)) != EOF)
-    {
-        if (ch == '\n')
-        lines++;
-    }
-    fclose(fp);
-    return lines;
-}
-
-struct variable findVariable(char* varname, struct variable *memory, int searchArea, int lineNr){
-    for (int i = 0; i < searchArea; i++){
-        if (strcmp(memory[i].key, varname)==0){
-            return memory[i];
-        }
-    }
-
-    doError(1, lineNr);
-}
+#include "headers/numberOfParts.h"
+#include "headers/errorMessages.h"
+#include "headers/countlines.h"
+#include "headers/isNumeric.h"
+#include "headers/tokens.h"
 
 char** read(char* filename){
     int lineCount = countlines(filename);
@@ -186,7 +71,6 @@ void cmd_quit(int lineNr, int exitCode){
     printf("program exited on line %d with code %d\n", lineNr, exitCode);
     exit(0);
 }
-
 
 void run(char* filename){
     int numOfLines = countlines(filename);
