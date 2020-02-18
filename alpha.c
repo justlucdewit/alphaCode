@@ -112,17 +112,16 @@ void run(char* filename){
             char* string = malloc((sizeof(char))*(strlen(code[lineNr])-8));
             string[strlen(code[lineNr])-7] = '\0';
             if (sscanf(code[lineNr], "%s \"%[a-zA-Z _+-=*/^]\"", command,  string) == 2){
-                printf("%s", string);
+                printf("%s\n", string);
                 putchar('\n');
             }else if (code[lineNr][6] != '"'){//printing a variable
                 char *varname = malloc((sizeof(char))*256);
                 sscanf(code[lineNr], "print %s", varname);
-                printf("searching for variable named: %s\n", varname);
                 struct variable varstruct = findVariable(varname, memory, numOfVars, lineNr);
                 //printf("%s", varstruct.);
 
                 if (varstruct.type == alph_str){
-                    printf("%s", varstruct.str_val);
+                    printf("%s\n", varstruct.str_val);
                 }else{
                     printf("%d", varstruct.int_val);
                 }
