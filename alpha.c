@@ -41,7 +41,7 @@ commands:
 //v1.1.7 will have variable printing
 //v1.2 will have all functionality of zetacode
 
-#define VERSION "alphaCode V1.1.7"
+#define VERSION "alphaCode V1.1.8"
 #define MAXLINESIZE 1000
 #define VARIABLESIZELIM 1000 //! this shouldnt be a thing
 
@@ -108,7 +108,6 @@ void run(char* filename){
                 }
             }
 
-
             char* string = malloc((sizeof(char))*(strlen(code[lineNr])-8));
             string[strlen(code[lineNr])-7] = '\0';
             if (sscanf(code[lineNr], "%s \"%[a-zA-Z _+-=*/^]\"", command,  string) == 2){
@@ -122,11 +121,13 @@ void run(char* filename){
 
                 if (varstruct.type == alph_str){
                     printf("%s\n", varstruct.str_val);
+                }else if(varstruct.type == alph_unknown){
+                    doError(1, lineNr+1);
                 }else{
                     printf("%d", varstruct.int_val);
                 }
             }else{
-                doError(105, lineNr+1);
+                doError(69420, lineNr+1);
             }
         }
 
@@ -179,20 +180,32 @@ void run(char* filename){
                 }
             }
 
+
             //* define int variable
             if (sscanf(code[lineNr], "%30s %258s %d", command, strarg1, &arg1) == 3){
                 // make a copy of the variable name string
                 char *newvarname = malloc((sizeof(char))*258);
                 strcpy(newvarname, strarg1);
                 newvarname[257] = '\0';
-
-                // create the variable struct
-                struct variable newvar = {.key = newvarname, .type = alph_int, .int_val = arg1};
                 
-                //increase memory buffer size
-                numOfVars++;
-                memory = realloc(memory, (sizeof(newvar))*numOfVars);
-                memory[numOfVars-1] = newvar;
+                // look if variable is already defined
+                struct variable testing = findVariable(newvarname, memory, numOfVars, lineNr);
+                if (testing.type != alph_unknown){
+                    if (testing.type == alph_int){
+                        memory[testing.position].int_val = arg1;
+                    }else{
+                        //! trying to assign int to str variable
+                        doError(2, lineNr);
+                    }
+                }else{
+                    // create the variable struct
+                    struct variable newvar = {.key = newvarname, .type = alph_int, .int_val = arg1};
+                    
+                    //increase memory buffer size
+                    numOfVars++;
+                    memory = realloc(memory, (sizeof(newvar))*numOfVars);
+                    memory[numOfVars-1] = newvar;
+                }
             }
 
             //* define string variable
@@ -206,13 +219,23 @@ void run(char* filename){
                 char *newvarvalue = malloc((sizeof(char))*strlen(strarg2));
                 strcpy(newvarvalue, strarg2);
 
-                //create the variable struct
-                struct variable newvar = {.key = newvarname, .type = alph_str, .str_val = newvarvalue};
+                struct variable testing = findVariable(newvarname, memory, numOfVars, lineNr);
+                if (testing.type != alph_unknown){
+                    if (testing.type == alph_str){
+                        memory[testing.position].str_val = newvarvalue;
+                    }else{
+                        //! trying to assign str to int variable
+                        doError(3, lineNr);
+                    }
+                }else{
+                    //create the variable struct
+                    struct variable newvar = {.key = newvarname, .type = alph_str, .str_val = newvarvalue, .position=numOfVars};
 
-                //increase memory buffer size
-                numOfVars++;
-                memory = realloc(memory, (sizeof(newvar))*numOfVars);
-                memory[numOfVars-1] = newvar;
+                    //increase memory buffer size
+                    numOfVars++;
+                    memory = realloc(memory, (sizeof(newvar))*numOfVars);
+                    memory[numOfVars-1] = newvar;
+                }
             }
 
             else{
@@ -240,11 +263,22 @@ void run(char* filename){
                 fgets(varVal, 1000, stdin);
                 sscanf(varVal, "%[^\n]", varVal);
                 
-                struct variable newvar = {.key = newvarname, .type = alph_str, .str_val = varVal};
-                
-                numOfVars++;
-                memory = realloc(memory, (sizeof(newvar))*numOfVars);
-                memory[numOfVars-1] = newvar;
+                // look if variable is already defined
+                struct variable testing = findVariable(newvarname, memory, numOfVars, lineNr);
+                if (testing.type != alph_unknown){
+                    if (testing.type == alph_str){
+                        memory[testing.position].str_val = varVal;
+                    }else{
+                        //! trying to assign int to str variable
+                        doError(2, lineNr);
+                    }
+                }else{
+                    struct variable newvar = {.key = newvarname, .type = alph_str, .str_val = varVal};
+                    
+                    numOfVars++;
+                    memory = realloc(memory, (sizeof(newvar))*numOfVars);
+                    memory[numOfVars-1] = newvar;
+                }
             }else{
                 doError(104, lineNr+1);
             }

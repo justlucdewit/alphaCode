@@ -1,5 +1,4 @@
 # alphaCode
-
 #### a simple interpreted language based on zetaCode and BASIC <br> made by luc de wit
 
 alpha code is a project started by luc de wit in februari 2020, its based on the programming language "zetaCode" wich was made by joseph catanzarit.
@@ -34,9 +33,12 @@ goto 1 #this is a inline comment
 
 <br>
 print statements are made using the print keyword, and then the string to print
+it is also able to print a variable
 
 ```
+let age 18
 print "hello world"
+print age
 ```
 
 <br>

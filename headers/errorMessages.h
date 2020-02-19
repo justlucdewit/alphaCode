@@ -5,6 +5,8 @@ void doError(int type, int lineNr){
     switch(type){
         //odd
         case 1: printf("[ERROR 001] variable not defined on line %d", lineNr);break;
+        case 2: printf("[ERROR 002] trying to assign int to str variable on line %d", lineNr);break;
+        case 3: printf("[ERRPR 003] trying to assign str to int variable on line %d", lineNr);break;
 
         //wrong arg type
         case 101: printf("[ERROR 101] exit command on line %d expects args of type [int]\n", lineNr);break;

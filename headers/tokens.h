@@ -1,10 +1,12 @@
 typedef enum Types{
     alph_int,
-    alph_str
+    alph_str,
+    alph_unknown
 }alph_type;
 
 struct variable{
     char* key;
+    int position;
     alph_type type;
     union{
         char* str_val;
@@ -19,5 +21,6 @@ struct variable findVariable(char* varname, struct variable *memory, int searchA
         }
     }
 
-    doError(1, lineNr);
+    struct variable unknown = {.type = alph_unknown};
+    return unknown;
 }

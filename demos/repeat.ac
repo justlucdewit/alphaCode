@@ -1,3 +1,4 @@
 get name
 print name
+goto 2
 exit 0
